@@ -426,6 +426,133 @@
       border: 1px solid var(--sage);
     }
 
+    /* ==================== ROUTE DETAILS PANEL ==================== */
+    .route-details-panel {
+      margin-top: 24px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      display: none;
+    }
+
+    .route-details-panel.show {
+      display: block;
+    }
+
+    .route-details-header {
+      padding: 20px 24px;
+      background: rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .route-details-header h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .route-details-header h3 i {
+      color: var(--terracotta);
+    }
+
+    .route-step {
+      padding: 18px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      transition: background 0.2s;
+    }
+
+    .route-step:last-child {
+      border-bottom: none;
+    }
+
+    .route-step:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .route-step-name {
+      font-weight: 600;
+      font-size: 16px;
+      color: white;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .route-step-name .step-num {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--terracotta), var(--sand));
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .route-step-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .route-meta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .route-meta-badge.floor {
+      background: rgba(129, 178, 154, 0.25);
+      color: var(--sage);
+      border: 1px solid rgba(129, 178, 154, 0.4);
+    }
+
+    .route-meta-badge.status-available {
+      background: rgba(129, 178, 154, 0.25);
+      color: var(--sage);
+      border: 1px solid rgba(129, 178, 154, 0.4);
+    }
+
+    .route-meta-badge.status-occupied {
+      background: rgba(224, 122, 95, 0.3);
+      color: var(--terracotta);
+      border: 1px solid rgba(224, 122, 95, 0.5);
+    }
+
+    .route-meta-badge.teachers {
+      background: rgba(212, 165, 116, 0.3);
+      color: var(--clay);
+      border: 1px solid rgba(212, 165, 116, 0.5);
+    }
+
+    .teachers-list {
+      margin-top: 10px;
+      padding-left: 20px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.85);
+      line-height: 1.8;
+    }
+
+    .teachers-list li {
+      margin-bottom: 4px;
+    }
+
     /* ==================== LOADING STATE ==================== */
     .map-loading {
       display: flex;
@@ -542,6 +669,9 @@
         <button type="button" class="btn btn-secondary" onclick="shareQR()">
           <i class="fas fa-qrcode"></i> Share QR
         </button>
+        <button type="button" class="btn btn-secondary" id="btnClearRoute" onclick="clearRoute()">
+          <i class="fas fa-times"></i> Clear Route
+        </button>
       </div>
 
       <div class="quick-places">
@@ -550,13 +680,23 @@
         <button type="button" class="quick-btn" data-place="IIT Bombay Library">Library</button>
         <button type="button" class="quick-btn" data-place="IIT Bombay VMCC">VMCC</button>
         <button type="button" class="quick-btn" data-place="IIT Bombay Hostel 18">Hostel 18</button>
-        <button type="button" class="quick-btn" data-place="IIT Bombay Convocation Hall">Convocation Hall</button>
+        <button type="button" class="quick-btn" data-place="IIT Bombay CS Department">CS Dept</button>
+        <button type="button" class="quick-btn" data-place="IIT Bombay VLCC">VLCC</button>
+        <button type="button" class="quick-btn" data-place="IIT Bombay Chemistry Lab">Chemistry Lab</button>
       </div>
 
       <div id="mapStatus" class="map-status"></div>
 
       <div class="map-wrap">
         <div id="map" class="map-loading spinner">Loading map…</div>
+      </div>
+
+      <!-- Route Details: floor, teachers, lab status -->
+      <div class="route-details-panel" id="routeDetailsPanel">
+        <div class="route-details-header">
+          <h3><i class="fas fa-info-circle"></i> Route Details</h3>
+        </div>
+        <div id="routeDetailsContent"></div>
       </div>
 
       <div class="qr-section" id="qrBox"></div>
@@ -570,6 +710,75 @@
   <script>
     // IIT Bombay center
     const IIT_BOMBAY = { lat: 19.1334, lng: 72.9133 };
+
+    // Campus location details: floor, teachers, lab status
+    const campusLocations = {
+      'main gate': { building: 'Main Gate', floor: 'Ground', teachers: [], labStatus: null },
+      'library': { building: 'Central Library', floor: '1st–3rd Floor', teachers: ['Dr. S. Rao (Librarian)', 'Ms. P. Sharma'], labStatus: null },
+      'vmcc': { building: 'Victor Menezes Convention Centre', floor: 'Ground & 1st Floor', teachers: [], labStatus: null },
+      'hostel 18': { building: 'Hostel 18', floor: 'Ground–4th Floor', teachers: [], labStatus: null },
+      'convocation hall': { building: 'Convocation Hall', floor: 'Ground Floor', teachers: [], labStatus: null },
+      'computer science': { building: 'CS Department (Kanwal Rekhi)', floor: '2nd Floor', teachers: ['Prof. K. Kulkarni', 'Prof. S. Bhattacharya'], labStatus: 'Available' },
+      'cs department': { building: 'CS Department (Kanwal Rekhi)', floor: '2nd Floor', teachers: ['Prof. K. Kulkarni', 'Prof. S. Bhattacharya'], labStatus: 'Available' },
+      'cs dept': { building: 'CS Department (Kanwal Rekhi)', floor: '2nd Floor', teachers: ['Prof. K. Kulkarni', 'Prof. S. Bhattacharya'], labStatus: 'Available' },
+      'vlabs': { building: 'VLabs', floor: '1st Floor', teachers: ['Dr. A. Mehta'], labStatus: 'Available' },
+      'vlcc': { building: 'VLCC', floor: '2nd Floor', teachers: ['Prof. R. Deshmukh'], labStatus: 'Occupied (till 4 PM)' },
+      'chemistry lab': { building: 'Chemistry Building', floor: '3rd Floor', teachers: ['Prof. M. Patel', 'Dr. N. Singh'], labStatus: 'Occupied' },
+      'physics lab': { building: 'Physics Department', floor: '2nd Floor', teachers: ['Prof. V. Kumar'], labStatus: 'Available' },
+      'mechanical workshop': { building: 'Mechanical Engineering', floor: 'Ground Floor', teachers: ['Prof. D. Joshi'], labStatus: 'Available' },
+      'sjmsom': { building: 'SJMSOM', floor: '1st–2nd Floor', teachers: ['Prof. A. Gupta', 'Prof. L. Nair'], labStatus: null },
+      'lecture complex': { building: 'Lecture Complex', floor: 'Ground–2nd Floor', teachers: [], labStatus: null }
+    };
+
+    function getLocationDetails(name) {
+      const lower = (name || '').toLowerCase();
+      for (const [key, data] of Object.entries(campusLocations)) {
+        if (lower.includes(key)) return data;
+      }
+      return { building: name || 'Location', floor: null, teachers: [], labStatus: null };
+    }
+
+    function buildRouteDetailsHTML(startVal, endVal) {
+      const startDetails = getLocationDetails(startVal);
+      const endDetails = getLocationDetails(endVal);
+
+      const steps = [
+        { name: startDetails.building, floor: startDetails.floor, teachers: startDetails.teachers, labStatus: startDetails.labStatus },
+        { name: endDetails.building, floor: endDetails.floor, teachers: endDetails.teachers, labStatus: endDetails.labStatus }
+      ];
+
+      return steps.map((step, i) => {
+        let badges = '';
+        if (step.floor) badges += `<span class="route-meta-badge floor"><i class="fas fa-layer-group"></i> ${step.floor}</span>`;
+        if (step.labStatus) {
+          const statusClass = step.labStatus.toLowerCase().includes('available') ? 'status-available' : 'status-occupied';
+          badges += `<span class="route-meta-badge ${statusClass}"><i class="fas fa-flask"></i> Lab: ${step.labStatus}</span>`;
+        }
+        if (step.teachers && step.teachers.length) {
+          badges += `<span class="route-meta-badge teachers"><i class="fas fa-chalkboard-teacher"></i> ${step.teachers.length} teacher(s) available</span>`;
+        }
+        const teachersList = step.teachers && step.teachers.length
+          ? `<ul class="teachers-list">${step.teachers.map(t => `<li>${t}</li>`).join('')}</ul>`
+          : '';
+        return `
+          <div class="route-step">
+            <div class="route-step-name"><span class="step-num">${i + 1}</span> ${step.name}</div>
+            ${badges ? `<div class="route-step-meta">${badges}</div>` : ''}
+            ${teachersList}
+          </div>`;
+      }).join('');
+    }
+
+    function showRouteDetails(startVal, endVal) {
+      const panel = document.getElementById('routeDetailsPanel');
+      const content = document.getElementById('routeDetailsContent');
+      content.innerHTML = buildRouteDetailsHTML(startVal, endVal);
+      panel.classList.add('show');
+    }
+
+    function hideRouteDetails() {
+      document.getElementById('routeDetailsPanel').classList.remove('show');
+    }
 
     let map;
     let routingControl = null;
@@ -622,10 +831,11 @@
     }
 
     function clearRoute() {
-      if (routingControl) {
+      if (routingControl && map) {
         map.removeControl(routingControl);
         routingControl = null;
       }
+      hideRouteDetails();
     }
 
     function calculateRoute() {
@@ -678,6 +888,7 @@
 
           routingControl.on('routesfound', function() {
             showStatus('Route displayed. Accessible mode: ' + (accessibleMode ? 'on (walking-friendly).' : 'off.'), 'success');
+            showRouteDetails(startVal, endVal);
           });
 
           speak('Route started');

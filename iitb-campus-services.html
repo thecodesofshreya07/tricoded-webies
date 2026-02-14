@@ -8,6 +8,7 @@
     <meta name="theme-color" content="#8B4513">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
     <style>
         /* ============================================
@@ -240,6 +241,35 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             margin-top: 12px;
         }
+
+        .view-on-map-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            padding: 8px 14px;
+            background: rgba(129, 178, 154, 0.3);
+            border: 1px solid rgba(129, 178, 154, 0.5);
+            border-radius: 12px;
+            color: var(--sage);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+        .view-on-map-btn:hover {
+            background: rgba(129, 178, 154, 0.5);
+            transform: translateY(-1px);
+        }
+        .view-on-map-btn i { font-size: 12px; }
+
+        /* Map Modal */
+        .map-modal .modal-content { max-width: 700px; }
+        #serviceMap { width: 100%; height: 380px; border-radius: 16px; background: #1e3a32; }
+        .map-modal-title { font-family: 'Montserrat', sans-serif; font-size: 20px; color: white; margin-bottom: 4px; }
+        .map-modal-subtitle { font-size: 14px; color: rgba(255,255,255,0.8); }
+        .map-modal .modal-header { margin-bottom: 1rem; }
 
         /* ============================================
            FOOD MENU MODAL
@@ -522,7 +552,7 @@
 
             <div class="services-grid" id="servicesGrid">
                 <!-- Dining Services -->
-                <div class="service-card" data-category="dining" onclick="openFoodMenu('canteen1')">
+                <div class="service-card" data-category="dining" data-map-id="hostel-1" onclick="openFoodMenu('canteen1')">
                     <div class="service-icon">🍽️</div>
                     <h3 class="service-title">Main Canteen (Canteen 1)</h3>
                     <p class="service-description">
@@ -543,9 +573,10 @@
                         </div>
                     </div>
                     <span class="service-badge">View Full Menu</span>
+                    <button type="button" class="view-on-map-btn" onclick="event.stopPropagation(); showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="dining" onclick="openFoodMenu('himalaya')">
+                <div class="service-card" data-category="dining" data-map-id="hostel-18" onclick="openFoodMenu('himalaya')">
                     <div class="service-icon">🍜</div>
                     <h3 class="service-title">Himalaya Canteen</h3>
                     <p class="service-description">
@@ -566,9 +597,10 @@
                         </div>
                     </div>
                     <span class="service-badge">View Full Menu</span>
+                    <button type="button" class="view-on-map-btn" onclick="event.stopPropagation(); showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="dining" onclick="openFoodMenu('nightcanteen')">
+                <div class="service-card" data-category="dining" data-map-id="sac" onclick="openFoodMenu('nightcanteen')">
                     <div class="service-icon">🌙</div>
                     <h3 class="service-title">Night Canteen</h3>
                     <p class="service-description">
@@ -589,9 +621,10 @@
                         </div>
                     </div>
                     <span class="service-badge">View Menu</span>
+                    <button type="button" class="view-on-map-btn" onclick="event.stopPropagation(); showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="dining" onclick="openFoodMenu('foodcourt')">
+                <div class="service-card" data-category="dining" data-map-id="sac" onclick="openFoodMenu('foodcourt')">
                     <div class="service-icon">🍕</div>
                     <h3 class="service-title">SAC Food Court</h3>
                     <p class="service-description">
@@ -612,10 +645,11 @@
                         </div>
                     </div>
                     <span class="service-badge">View Stalls</span>
+                    <button type="button" class="view-on-map-btn" onclick="event.stopPropagation(); showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
                 <!-- Study Spaces -->
-                <div class="service-card" data-category="study">
+                <div class="service-card" data-category="study" data-map-id="central-library">
                     <div class="service-icon">📚</div>
                     <h3 class="service-title">Central Library</h3>
                     <p class="service-description">
@@ -636,9 +670,10 @@
                         </div>
                     </div>
                     <span class="service-badge">24/7 Reading Room</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="study">
+                <div class="service-card" data-category="study" data-map-id="main-building">
                     <div class="service-icon">🏛️</div>
                     <h3 class="service-title">Departmental Reading Rooms</h3>
                     <p class="service-description">
@@ -659,9 +694,10 @@
                         </div>
                     </div>
                     <span class="service-badge">Department Access</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="study">
+                <div class="service-card" data-category="study" data-map-id="powai-lake">
                     <div class="service-icon">🌳</div>
                     <h3 class="service-title">Open Study Areas</h3>
                     <p class="service-description">
@@ -682,10 +718,11 @@
                         </div>
                     </div>
                     <span class="service-badge">Fresh Air Study</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
                 <!-- Facilities -->
-                <div class="service-card" data-category="facilities">
+                <div class="service-card" data-category="facilities" data-map-id="main-building">
                     <div class="service-icon">🖨️</div>
                     <h3 class="service-title">Print & Copy Services</h3>
                     <p class="service-description">
@@ -706,9 +743,10 @@
                         </div>
                     </div>
                     <span class="service-badge">Quick Service</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="facilities">
+                <div class="service-card" data-category="facilities" data-map-id="main-building">
                     <div class="service-icon">💧</div>
                     <h3 class="service-title">Water Coolers & RO Points</h3>
                     <p class="service-description">
@@ -729,9 +767,10 @@
                         </div>
                     </div>
                     <span class="service-badge">Safe & Clean</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="facilities">
+                <div class="service-card" data-category="facilities" data-map-id="gymkhana">
                     <div class="service-icon">🏋️</div>
                     <h3 class="service-title">Gymnasium (SAC Gym)</h3>
                     <p class="service-description">
@@ -752,9 +791,10 @@
                         </div>
                     </div>
                     <span class="service-badge">Fitness First</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="facilities">
+                <div class="service-card" data-category="facilities" data-map-id="powai-lake">
                     <div class="service-icon">🚶</div>
                     <h3 class="service-title">Walking Track & Jogging Path</h3>
                     <p class="service-description">
@@ -775,9 +815,10 @@
                         </div>
                     </div>
                     <span class="service-badge">Peaceful Walk</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="facilities">
+                <div class="service-card" data-category="facilities" data-map-id="sac">
                     <div class="service-icon">🚴</div>
                     <h3 class="service-title">Cycling Tracks</h3>
                     <p class="service-description">
@@ -798,9 +839,10 @@
                         </div>
                     </div>
                     <span class="service-badge">Eco-Friendly</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="facilities">
+                <div class="service-card" data-category="facilities" data-map-id="health-centre">
                     <div class="service-icon">🏥</div>
                     <h3 class="service-title">Health Centre</h3>
                     <p class="service-description">
@@ -821,10 +863,11 @@
                         </div>
                     </div>
                     <span class="service-badge">Healthcare Ready</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
                 <!-- Events -->
-                <div class="service-card" data-category="events">
+                <div class="service-card" data-category="events" data-map-id="sac">
                     <div class="service-icon">🎭</div>
                     <h3 class="service-title">Mood Indigo</h3>
                     <p class="service-description">
@@ -845,9 +888,10 @@
                         </div>
                     </div>
                     <span class="service-badge">Mega Fest</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="events">
+                <div class="service-card" data-category="events" data-map-id="gymkhana">
                     <div class="service-icon">⚽</div>
                     <h3 class="service-title">Inter-IIT Sports Meet</h3>
                     <p class="service-description">
@@ -868,9 +912,10 @@
                         </div>
                     </div>
                     <span class="service-badge">Sports Glory</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="events">
+                <div class="service-card" data-category="events" data-map-id="vmcc">
                     <div class="service-icon">💻</div>
                     <h3 class="service-title">Hackathons & Tech Fests</h3>
                     <p class="service-description">
@@ -891,9 +936,10 @@
                         </div>
                     </div>
                     <span class="service-badge">Innovation Hub</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="events">
+                <div class="service-card" data-category="events" data-map-id="sac">
                     <div class="service-icon">🎪</div>
                     <h3 class="service-title">Club Events & Workshops</h3>
                     <p class="service-description">
@@ -914,10 +960,11 @@
                         </div>
                     </div>
                     <span class="service-badge">Join Now</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
                 <!-- Explore Nearby -->
-                <div class="service-card" data-category="explore">
+                <div class="service-card" data-category="explore" data-map-id="powai-lake">
                     <div class="service-icon">🏞️</div>
                     <h3 class="service-title">Powai Lake</h3>
                     <p class="service-description">
@@ -938,9 +985,10 @@
                         </div>
                     </div>
                     <span class="service-badge">Must Visit</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="explore">
+                <div class="service-card" data-category="explore" data-map-id="hiranandani">
                     <div class="service-icon">🛍️</div>
                     <h3 class="service-title">Hiranandani Gardens</h3>
                     <p class="service-description">
@@ -961,9 +1009,10 @@
                         </div>
                     </div>
                     <span class="service-badge">Weekend Spot</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="explore">
+                <div class="service-card" data-category="explore" data-map-id="sgnp">
                     <div class="service-icon">⛰️</div>
                     <h3 class="service-title">Sanjay Gandhi National Park</h3>
                     <p class="service-description">
@@ -984,9 +1033,10 @@
                         </div>
                     </div>
                     <span class="service-badge">Nature Escape</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
 
-                <div class="service-card" data-category="explore">
+                <div class="service-card" data-category="explore" data-map-id="juhu-beach">
                     <div class="service-icon">🏖️</div>
                     <h3 class="service-title">Mumbai Beaches</h3>
                     <p class="service-description">
@@ -1007,6 +1057,7 @@
                         </div>
                     </div>
                     <span class="service-badge">Beach Day</span>
+                    <button type="button" class="view-on-map-btn" onclick="showServiceOnMap(this);" title="Show location on map"><i class="fas fa-map-marker-alt"></i> View on Map</button>
                 </div>
             </div>
         </section>
@@ -1023,6 +1074,18 @@
             <div id="modalBody">
                 <!-- Menu content will be inserted here -->
             </div>
+        </div>
+    </div>
+
+    <!-- Map Modal - shows service location -->
+    <div class="modal map-modal" id="mapModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeMapModal()" aria-label="Close map">×</button>
+            <div class="modal-header">
+                <h2 class="map-modal-title" id="mapModalTitle">Location</h2>
+                <p class="map-modal-subtitle" id="mapModalSubtitle">Service location on campus</p>
+            </div>
+            <div id="serviceMap"></div>
         </div>
     </div>
 
@@ -1060,8 +1123,68 @@
         </div>
     </footer>
 
-    <!-- JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
+        // Service location coordinates (IIT Bombay campus & nearby)
+        const serviceLocations = {
+            'main-gate': { lat: 19.1320, lng: 72.9185, name: 'Main Gate', area: 'Powai entrance' },
+            'central-library': { lat: 19.1345, lng: 72.9110, name: 'Central Library', area: 'Academic zone' },
+            'convocation-hall': { lat: 19.1352, lng: 72.9105, name: 'Convocation Hall', area: 'Academic zone' },
+            'vmcc': { lat: 19.1360, lng: 72.9080, name: 'Victor Menezes Convention Centre', area: 'Convention zone' },
+            'lc': { lat: 19.1338, lng: 72.9120, name: 'Lecture Complex', area: 'Academic zone' },
+            'main-building': { lat: 19.1340, lng: 72.9115, name: 'Main Building', area: 'Academic zone' },
+            'sjmsom': { lat: 19.1332, lng: 72.9108, name: 'SJMSOM', area: 'Academic zone' },
+            'hostel-18': { lat: 19.1370, lng: 72.9075, name: 'Hostel 18', area: 'Residential zone' },
+            'hostel-1': { lat: 19.1315, lng: 72.9095, name: 'Hostel 1 (Main Canteen area)', area: 'Residential zone' },
+            'sac': { lat: 19.1325, lng: 72.9125, name: 'Student Activity Centre (SAC)', area: 'Recreation zone' },
+            'gymkhana': { lat: 19.1310, lng: 72.9140, name: 'Gymkhana (Sports Complex)', area: 'Recreation zone' },
+            'cafeteria': { lat: 19.1328, lng: 72.9118, name: 'Institute Cafeteria', area: 'Central campus' },
+            'cse-building': { lat: 19.1342, lng: 72.9098, name: 'CSE Department', area: 'Academic zone' },
+            'powai-lake': { lat: 19.1380, lng: 72.9065, name: 'Powai Lake (Campus side)', area: 'Eastern boundary' },
+            'health-centre': { lat: 19.1322, lng: 72.9112, name: 'Health Centre', area: 'Central campus' },
+            'hiranandani': { lat: 19.1090, lng: 72.9080, name: 'Hiranandani Gardens', area: 'Near Powai' },
+            'sgnp': { lat: 19.2140, lng: 72.8770, name: 'Sanjay Gandhi National Park', area: 'Borivali' },
+            'juhu-beach': { lat: 19.0590, lng: 72.8210, name: 'Juhu Beach', area: 'Mumbai West' }
+        };
+
+        let serviceMap = null;
+        let serviceMarker = null;
+
+        function showServiceOnMap(btnEl) {
+            const card = btnEl.closest('.service-card');
+            const mapId = card.getAttribute('data-map-id');
+            const title = card.querySelector('.service-title').textContent;
+
+            const loc = serviceLocations[mapId] || serviceLocations['main-building'];
+            document.getElementById('mapModalTitle').textContent = title;
+            document.getElementById('mapModalSubtitle').textContent = loc.area || 'IIT Bombay Campus';
+            document.getElementById('mapModal').classList.add('active');
+
+            // Init or update map after modal is visible (needed for correct dimensions)
+            setTimeout(() => {
+                if (!serviceMap) {
+                    serviceMap = L.map('serviceMap').setView([loc.lat, loc.lng], 17);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap'
+                    }).addTo(serviceMap);
+                } else {
+                    serviceMap.invalidateSize();
+                }
+                serviceMap.setView([loc.lat, loc.lng], 17);
+                if (serviceMarker) serviceMap.removeLayer(serviceMarker);
+                serviceMarker = L.marker([loc.lat, loc.lng]).addTo(serviceMap)
+                    .bindPopup('<b>' + loc.name + '</b><br>' + (loc.area || '')).openPopup();
+            }, 150);
+        }
+
+        function closeMapModal() {
+            document.getElementById('mapModal').classList.remove('active');
+        }
+
+        document.getElementById('mapModal').addEventListener('click', function(e) {
+            if (e.target === this) closeMapModal();
+        });
+
         // Category filter functionality
         const filterTabs = document.querySelectorAll('.filter-tab');
         const serviceCards = document.querySelectorAll('.service-card');
