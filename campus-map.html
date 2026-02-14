@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Interactive Campus Map - IIT Bombay | Smart Move</title>
+  <meta name="description" content="Explore IIT Bombay campus - locations, features and facilities">
+  <meta name="theme-color" content="#8B4513">
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+  <style>
+    :root {
+      --earth-brown: #8B4513;
+      --deep-earth: #654321;
+      --terracotta: #E07A5F;
+      --sand: #F4A261;
+      --sage: #81B29A;
+      --forest: #3D5A40;
+      --clay: #D4A574;
+      --stone: #A8A196;
+      --cream: #F9F5F0;
+      --charcoal: #2D3142;
+      --white: #FFFFFF;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      overflow-x: hidden;
+      background: #1a1a1a;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    .background-wrapper {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .background-image {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .background-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, rgba(139, 69, 19, 0.88) 0%, rgba(101, 67, 33, 0.78) 50%, rgba(61, 90, 64, 0.88) 100%);
+      backdrop-filter: blur(3px);
+    }
+
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 90px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(25px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 50px;
+      border-bottom: 3px solid rgba(212, 165, 116, 0.3);
+    }
+
+    .logo-section { display: flex; align-items: center; gap: 18px; }
+
+    .logo-icon {
+      width: 60px; height: 60px;
+      background: linear-gradient(135deg, var(--earth-brown), var(--terracotta));
+      border-radius: 15px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 25px rgba(139, 69, 19, 0.5), inset 0 -3px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .logo-icon i { font-size: 28px; color: white; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3)); }
+
+    .logo-text h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: white;
+      letter-spacing: -0.5px;
+      text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      background: linear-gradient(135deg, #fff, var(--clay));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-text p { font-size: 12px; color: rgba(255, 255, 255, 0.8); font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
+
+    .nav-back {
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 50px;
+      color: white;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-back:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); color: white; }
+
+    .main-container {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      padding: 110px 50px 60px;
+      z-index: 1;
+    }
+
+    .page-hero { text-align: center; margin-bottom: 32px; }
+    .page-hero h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 42px;
+      font-weight: 800;
+      color: white;
+      text-shadow: 0 5px 20px rgba(0, 0, 0, 0.6);
+      margin-bottom: 10px;
+      letter-spacing: -1px;
+    }
+    .page-hero .subtitle { font-size: 18px; color: rgba(255, 255, 255, 0.9); max-width: 640px; margin: 0 auto; }
+
+    .map-search-card {
+      max-width: 1000px;
+      margin: 0 auto 28px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(25px);
+      border-radius: 24px;
+      padding: 28px 32px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .search-wrap {
+      position: relative;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-wrap i.fa-search {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 18px;
+      pointer-events: none;
+    }
+
+    .search-wrap input {
+      flex: 1;
+      min-width: 220px;
+      padding: 16px 20px 16px 52px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 16px;
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    .search-wrap input::placeholder { color: rgba(255, 255, 255, 0.55); }
+    .search-wrap input:focus {
+      outline: none;
+      border-color: var(--terracotta);
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 0 4px rgba(224, 122, 95, 0.2);
+    }
+
+    .filter-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+      align-items: center;
+    }
+
+    .filter-tags span { font-size: 13px; color: rgba(255, 255, 255, 0.8); margin-right: 4px; }
+    .filter-tag {
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      color: white;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+    .filter-tag:hover, .filter-tag.active {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: var(--terracotta);
+    }
+
+    .map-3d-wrap {
+      max-width: 1000px;
+      margin: 0 auto 28px;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+      background: #1e3a32;
+      min-height: 320px;
+    }
+
+    #map {
+      width: 100%;
+      height: 320px;
+      background: #2d5a4a;
+    }
+
+    .directions-card { margin-bottom: 20px; }
+    .directions-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+    .direction-field { flex: 1; min-width: 200px; }
+    .direction-field label { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.8); margin-bottom: 6px; font-weight: 600; }
+    .direction-select {
+      width: 100%;
+      padding: 14px 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 15px;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .direction-select:focus { outline: none; border-color: var(--terracotta); background: rgba(255, 255, 255, 0.15); }
+    .direction-select option { background: var(--charcoal); color: white; }
+
+    .leaflet-control-zoom a { background: rgba(255,255,255,0.2) !important; color: white !important; }
+    .leaflet-control-attribution { background: rgba(0,0,0,0.5) !important; color: rgba(255,255,255,0.7) !important; font-size: 10px; }
+
+    .results-count {
+      max-width: 1000px;
+      margin: 0 auto 14px;
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .place-cards {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: grid;
+      gap: 22px;
+    }
+
+    .place-card {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(25px);
+      border-radius: 24px;
+      padding: 28px 32px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: all 0.35s ease;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      perspective: 1000px;
+    }
+
+    .place-card:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.35);
+      transform: translateY(-6px);
+      box-shadow: 0 24px 56px rgba(0, 0, 0, 0.45), 0 0 40px rgba(224, 122, 95, 0.15);
+    }
+
+    .place-card h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .place-card h3 .icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .place-card h3 .icon-wrap i { color: white; font-size: 20px; }
+
+    .place-card .location {
+      font-size: 14px;
+      color: var(--sand);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .place-card .location i { opacity: 0.9; }
+
+    .place-card .desc {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.88);
+      line-height: 1.65;
+      margin-bottom: 16px;
+    }
+
+    .place-card .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .meta-pill {
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .place-card .available-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .place-card .available-list {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.6;
+    }
+
+    .no-results {
+      max-width: 1000px;
+      margin: 0 auto;
+      text-align: center;
+      padding: 50px 24px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      border: 2px dashed rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .header { padding: 0 20px; height: 80px; }
+      .logo-text h1 { font-size: 22px; }
+      .main-container { padding: 95px 20px 40px; }
+      .page-hero h1 { font-size: 30px; }
+      .map-search-card { padding: 20px; }
+      .place-card { padding: 22px; }
+      .place-card h3 { font-size: 19px; }
+      #map { height: 260px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="background-wrapper">
+    <img src="https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=2000" alt="Campus" class="background-image">
+    <div class="background-overlay"></div>
+  </div>
+
+  <header class="header">
+    <div class="logo-section">
+      <div class="logo-icon">
+        <i class="fas fa-map-marked-alt"></i>
+      </div>
+      <div class="logo-text">
+        <h1>Smart Move</h1>
+        <p>Interactive Campus Map</p>
+      </div>
+    </div>
+    <a href="landing.html" class="nav-back">
+      <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
+  </header>
+
+  <main class="main-container">
+    <div class="page-hero">
+      <h1>Interactive Campus Map</h1>
+      <p class="subtitle">Search locations and see features, facilities and what’s available at each place across IIT Bombay.</p>
+    </div>
+
+    <div class="map-search-card">
+      <div class="search-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search by name, location, feature or facility..." autocomplete="off">
+      </div>
+      <div class="filter-tags">
+        <span>Filter:</span>
+        <button type="button" class="filter-tag active" data-filter="">All</button>
+        <button type="button" class="filter-tag" data-filter="academic">Academic</button>
+        <button type="button" class="filter-tag" data-filter="hostel">Hostel</button>
+        <button type="button" class="filter-tag" data-filter="recreation">Recreation</button>
+        <button type="button" class="filter-tag" data-filter="admin">Admin</button>
+        <button type="button" class="filter-tag" data-filter="food">Food</button>
+        <button type="button" class="filter-tag" data-filter="research">Research</button>
+      </div>
+    </div>
+
+    <!-- Directions (React map feature): source/destination + route on map -->
+    <div class="directions-card map-search-card">
+      <div class="directions-row">
+        <div class="direction-field">
+          <label>From</label>
+          <select id="dirSource" class="direction-select">
+            <option value="">Select source...</option>
+          </select>
+        </div>
+        <div class="direction-field">
+          <label>To</label>
+          <select id="dirDest" class="direction-select">
+            <option value="">Select destination...</option>
+          </select>
+        </div>
+        <button type="button" id="clearRouteBtn" class="nav-back" style="display:none; margin-top:22px; padding:10px 20px;">Clear route</button>
+      </div>
+    </div>
+
+    <div class="map-3d-wrap">
+      <div id="map"></div>
+    </div>
+
+    <p class="results-count" id="resultsCount"></p>
+    <div class="place-cards" id="placeCards"></div>
+    <div class="no-results" id="noResults" style="display:none;">No places match your search. Try another keyword or filter.</div>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.min.js"></script>
+  <script>
+    const IIT_CENTER = { lat: 19.1334, lng: 72.9133 };
+    const CAMPUS_BOUNDS = [[19.125, 72.905], [19.142, 72.922]];
+
+    // Colored markers by type (same as React IITBmap)
+    const MARKER_COLORS = { academic: 'red', hostel: 'blue', food: 'green', recreation: 'orange', admin: 'orange', research: 'orange', facility: 'orange' };
+    function createIcon(type) {
+      var color = MARKER_COLORS[type] || 'orange';
+      return L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-' + color + '.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41]
+      });
+    }
+
+    const campusPlaces = [
+      {
+        id: 'main-gate',
+        name: 'Main Gate',
+        location: 'Powai, Eastern entrance',
+        area: 'Gate 1, Powai',
+        lat: 19.1320,
+        lng: 72.9185,
+        description: 'Primary entrance to IIT Bombay campus from Powai side.',
+        type: 'admin',
+        features: ['24/7 access', 'Security', 'Visitor registration'],
+        available: 'Security desk, visitor pass counter, vehicle entry.'
+      },
+      {
+        id: 'central-library',
+        name: 'Central Library',
+        location: 'Near Convocation Hall, Academic area',
+        area: 'Academic zone',
+        lat: 19.1345,
+        lng: 72.9110,
+        description: 'Main library with extensive print and digital collections.',
+        type: 'academic',
+        features: ['WiFi', '24/7 reading room', 'Study carrels', 'Printing'],
+        available: 'Books, journals, e-resources, study halls, printers, scanning, group study rooms.'
+      },
+      {
+        id: 'convocation-hall',
+        name: 'Convocation Hall',
+        location: 'Central academic area',
+        area: 'Academic zone',
+        lat: 19.1352,
+        lng: 72.9105,
+        description: 'Venue for convocations, lectures and large events.',
+        type: 'academic',
+        features: ['Large capacity', 'Stage', 'AV systems'],
+        available: 'Seating for 2000+, stage, projectors, sound system. Bookable for events.'
+      },
+      {
+        id: 'vmcc',
+        name: 'Victor Menezes Convention Centre (VMCC)',
+        location: 'Near Lake, Convention area',
+        area: 'Convention zone',
+        lat: 19.1360,
+        lng: 72.9080,
+        description: 'Convention centre for conferences, workshops and seminars.',
+        type: 'academic',
+        features: ['Multiple halls', 'Catering', 'WiFi', 'Parking'],
+        available: 'Auditoriums, meeting rooms, registration area, cafeteria, parking.'
+      },
+      {
+        id: 'lc',
+        name: 'Lecture Complex (LC)',
+        location: 'Academic area, near Main Building',
+        area: 'Academic zone',
+        lat: 19.1338,
+        lng: 72.9120,
+        description: 'Main lecture theatre complex for classes and exams.',
+        type: 'academic',
+        features: ['Multiple lecture halls', 'Projectors', 'Whiteboards'],
+        available: 'Lecture halls, tutorial rooms, common corridors, vending.'
+      },
+      {
+        id: 'main-building',
+        name: 'Main Building',
+        location: 'Central campus, Academic area',
+        area: 'Academic zone',
+        lat: 19.1340,
+        lng: 72.9115,
+        description: 'Central administrative and academic building.',
+        type: 'admin',
+        features: ['Admin offices', 'Dept offices', 'WiFi'],
+        available: 'Registrar, academics office, department HODs, faculty cabins, notice boards.'
+      },
+      {
+        id: 'sjmsom',
+        name: 'Shailesh J. Mehta School of Management (SJMSOM)',
+        location: 'Near Main Building',
+        area: 'Academic zone',
+        lat: 19.1332,
+        lng: 72.9108,
+        description: 'Business school offering MBA and related programmes.',
+        type: 'academic',
+        features: ['MBA programmes', 'Case study rooms', 'WiFi', 'Library'],
+        available: 'Classrooms, computer lab, library, placement cell, seminar halls.'
+      },
+      {
+        id: 'hostel-18',
+        name: 'Hostel 18',
+        location: 'Residential zone, near Powai Lake',
+        area: 'Hostel area',
+        lat: 19.1370,
+        lng: 72.9075,
+        description: 'One of the newer hostels with modern facilities.',
+        type: 'hostel',
+        features: ['Single/double rooms', 'Common room', 'WiFi', '24/7'],
+        available: 'Rooms, common room, mess, washing area, study room, gym.'
+      },
+      {
+        id: 'hostel-1',
+        name: 'Hostel 1 (First year)',
+        location: 'Residential zone',
+        area: 'Hostel area',
+        lat: 19.1315,
+        lng: 72.9095,
+        description: 'First-year undergraduate hostel.',
+        type: 'hostel',
+        features: ['Mess', 'Common room', 'WiFi'],
+        available: 'Dorm-style rooms, mess, common room, sports ground nearby.'
+      },
+      {
+        id: 'sac',
+        name: 'Student Activity Centre (SAC)',
+        location: 'Central campus, near hostels',
+        area: 'Recreation zone',
+        lat: 19.1325,
+        lng: 72.9125,
+        description: 'Hub for student clubs, activities and events.',
+        type: 'recreation',
+        features: ['Club rooms', 'Stage', 'WiFi', 'Events'],
+        available: 'Club offices, rehearsal spaces, event venue, notice boards.'
+      },
+      {
+        id: 'gymkhana',
+        name: 'Gymkhana (Sports)',
+        location: 'Sports complex area',
+        area: 'Recreation zone',
+        lat: 19.1310,
+        lng: 72.9140,
+        description: 'Sports and fitness facilities.',
+        type: 'recreation',
+        features: ['Gym', 'Indoor games', 'Courts', 'Swimming'],
+        available: 'Gym, badminton, table tennis, squash, swimming pool, outdoor courts.'
+      },
+      {
+        id: 'cafeteria',
+        name: 'Institute Cafeteria / Canteen',
+        location: 'Near SAC, Central campus',
+        area: 'Food zone',
+        lat: 19.1328,
+        lng: 72.9118,
+        description: 'Main campus canteen for meals and snacks.',
+        type: 'food',
+        features: ['Vegetarian', 'Snacks', 'Beverages'],
+        available: 'Breakfast, lunch, snacks, beverages. Open on institute timings.'
+      },
+      {
+        id: 'sine',
+        name: 'SINE (Society for Innovation & Entrepreneurship)',
+        location: 'Near Main Building',
+        area: 'Academic / Research zone',
+        lat: 19.1335,
+        lng: 72.9102,
+        description: 'Incubation centre for startups and innovation.',
+        type: 'research',
+        features: ['Incubation', 'Startup support', 'WiFi', 'Meeting rooms'],
+        available: 'Incubation space, mentoring, meeting rooms, connect with startups.'
+      },
+      {
+        id: 'cse-building',
+        name: 'Computer Science & Engineering Dept',
+        location: 'Academic area, Kanwal Rekhi Block',
+        area: 'Academic zone',
+        lat: 19.1342,
+        lng: 72.9098,
+        description: 'CSE department with labs and faculty offices.',
+        type: 'academic',
+        features: ['Labs', 'Servers', 'WiFi', 'Seminar room'],
+        available: 'Labs, project rooms, server room, faculty cabins, seminar hall.'
+      },
+      {
+        id: 'powai-lake',
+        name: 'Powai Lake (Campus side)',
+        location: 'Eastern boundary, near hostels',
+        area: 'Recreation / Nature',
+        lat: 19.1380,
+        lng: 72.9065,
+        description: 'Lake front on campus for walks and recreation.',
+        type: 'recreation',
+        features: ['Walking track', 'View', 'Open 24/7'],
+        available: 'Walking path, seating, view of lake. No swimming.'
+      }
+    ];
+
+    let map;
+    let markers = [];
+    let routeLayers = [];
+
+    function initMap() {
+      map = L.map('map', {
+        center: [IIT_CENTER.lat, IIT_CENTER.lng],
+        zoom: 16,
+        minZoom: 15,
+        maxBounds: CAMPUS_BOUNDS,
+        maxBoundsViscosity: 0.8
+      });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
+      fillDirectionDropdowns();
+      bindDirectionEvents();
+      renderPlaces(campusPlaces);
+    }
+
+    function fillDirectionDropdowns() {
+      var sourceSel = document.getElementById('dirSource');
+      var destSel = document.getElementById('dirDest');
+      campusPlaces.forEach(function(p) {
+        sourceSel.appendChild(new Option(p.name, p.id));
+        destSel.appendChild(new Option(p.name, p.id));
+      });
+    }
+
+    function bindDirectionEvents() {
+      var sourceSel = document.getElementById('dirSource');
+      var destSel = document.getElementById('dirDest');
+      var clearBtn = document.getElementById('clearRouteBtn');
+      function updateRoute() {
+        var sid = sourceSel.value, did = destSel.value;
+        if (sid && did && sid !== did) {
+          var src = campusPlaces.find(function(p) { return p.id === sid; });
+          var dst = campusPlaces.find(function(p) { return p.id === did; });
+          if (src && dst) fetchAndDrawRoute(src, dst);
+        } else {
+          clearRoute();
+        }
+        clearBtn.style.display = (sid && did) ? 'inline-flex' : 'none';
+      }
+      sourceSel.addEventListener('change', updateRoute);
+      destSel.addEventListener('change', updateRoute);
+      clearBtn.addEventListener('click', function() {
+        sourceSel.value = ''; destSel.value = '';
+        clearRoute();
+        clearBtn.style.display = 'none';
+      });
+    }
+
+    function clearRoute() {
+      routeLayers.forEach(function(layer) { map.removeLayer(layer); });
+      routeLayers = [];
+    }
+
+    function fetchAndDrawRoute(source, destination) {
+      clearRoute();
+      var coords = [[source.lat, source.lng], [destination.lat, destination.lng]];
+      var apiKey = ''; // Optional: add OpenRouteService key for real routes, e.g. 'eyJvcmciOiI...'
+      var url = 'https://api.openrouteservice.org/v2/directions/driving-car/geojson';
+      var body = { coordinates: [[source.lng, source.lat], [destination.lng, destination.lat]] };
+
+      if (apiKey) {
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Authorization': apiKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.features && data.features[0] && data.features[0].geometry)
+              coords = data.features[0].geometry.coordinates.map(function(c) { return [c[1], c[0]]; });
+            drawRouteOnMap(coords);
+          })
+          .catch(function() { drawRouteOnMap(coords); });
+      } else {
+        drawRouteOnMap(coords);
+      }
+    }
+
+    function drawRouteOnMap(coords) {
+      clearRoute();
+      var polyline = L.polyline(coords, { color: '#E07A5F', weight: 5 });
+      polyline.addTo(map);
+      routeLayers.push(polyline);
+      if (typeof L.polylineDecorator === 'function') {
+        var decorator = L.polylineDecorator(polyline, {
+          patterns: [{ offset: '5%', repeat: '10%', symbol: L.Symbol.arrowHead({ pixelSize: 8, pathOptions: { color: '#E07A5F', fillOpacity: 1 } }) }]
+        });
+        decorator.addTo(map);
+        routeLayers.push(decorator);
+      }
+      map.fitBounds(L.latLngBounds(coords), { padding: [50, 50] });
+    }
+
+    function clearMarkers() {
+      markers.forEach(m => map.removeLayer(m));
+      markers = [];
+    }
+
+    function addMarkers(places) {
+      clearMarkers();
+      places.forEach(p => {
+        const m = L.marker([p.lat, p.lng], { icon: createIcon(p.type) })
+          .addTo(map)
+          .bindPopup('<strong>' + p.name + '</strong><br>' + p.location);
+        markers.push(m);
+      });
+      if (places.length > 1) {
+        const group = L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.15));
+      } else if (places.length === 1) {
+        map.setView([places[0].lat, places[0].lng], 17);
+      }
+    }
+
+    function getSearchText(place) {
+      return [place.name, place.location, place.area, place.description, place.type, (place.features || []).join(' '), place.available].filter(Boolean).join(' ').toLowerCase();
+    }
+
+    function renderPlaces(places) {
+      addMarkers(places);
+      const container = document.getElementById('placeCards');
+      const noResults = document.getElementById('noResults');
+      const countEl = document.getElementById('resultsCount');
+
+      if (places.length === 0) {
+        container.innerHTML = '';
+        noResults.style.display = 'block';
+        countEl.textContent = '0 places found.';
+        return;
+      }
+
+      noResults.style.display = 'none';
+      countEl.textContent = places.length + ' place' + (places.length !== 1 ? 's' : '') + ' found.';
+
+      const colors = { academic: '#E07A5F', hostel: '#81B29A', recreation: '#F4A261', admin: '#8B4513', food: '#3D5A40', research: '#654321' };
+      container.innerHTML = places.map(p => {
+        const feat = (p.features || []).map(f => '<span class="meta-pill">' + f + '</span>').join('');
+        const color = colors[p.type] || '#6c757d';
+        return '<div class="place-card" data-id="' + p.id + '">' +
+          '<h3><span class="icon-wrap" style="background:linear-gradient(135deg,' + color + ',rgba(255,255,255,0.2));"><i class="fas fa-map-marker-alt"></i></span>' + p.name + '</h3>' +
+          '<div class="location"><i class="fas fa-location-dot"></i> ' + p.location + '</div>' +
+          '<p class="desc">' + p.description + '</p>' +
+          '<div class="meta">' + feat + '</div>' +
+          '<div class="available-title">What\'s available</div>' +
+          '<div class="available-list">' + p.available + '</div>' +
+          '</div>';
+      }).join('');
+
+      container.querySelectorAll('.place-card').forEach(card => {
+        card.addEventListener('click', function() {
+          const id = this.getAttribute('data-id');
+          const place = campusPlaces.find(p => p.id === id);
+          if (place) {
+            map.setView([place.lat, place.lng], 18);
+            const m = markers.find((_, i) => places[i] && places[i].id === id);
+            if (m) m.openPopup();
+          }
+        });
+      });
+    }
+
+    let currentFilter = '';
+    const searchInput = document.getElementById('searchInput');
+    const filterTags = document.querySelectorAll('.filter-tag');
+
+    function applyFilterAndSearch() {
+      const q = searchInput.value.trim().toLowerCase();
+      let list = campusPlaces;
+      if (currentFilter) list = list.filter(p => p.type === currentFilter);
+      if (q) list = list.filter(p => getSearchText(p).includes(q));
+      renderPlaces(list);
+    }
+
+    searchInput.addEventListener('input', applyFilterAndSearch);
+
+    filterTags.forEach(tag => {
+      tag.addEventListener('click', function() {
+        filterTags.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        currentFilter = this.getAttribute('data-filter') || '';
+        applyFilterAndSearch();
+      });
+    });
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMap);
+    } else {
+      initMap();
+    }
+  </script>
+</body>
+</html>
