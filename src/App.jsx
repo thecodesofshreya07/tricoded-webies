@@ -1,21 +1,23 @@
-import React from "react";
-import CampusMap from "./components/map/IITBmap";
-import SearchBar from "./components/search/SearchBar";
-import FilterPanel from "./components/search/FilterPanel";
-import LocationDetails from "./components/ui/LocationDetails";
-import CampusNavigator from './campusnavigator';
-import IITBmap from "./components/map/IITBmap";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import EntryPage from "./pages/EntryPage";
+import LandingPage from "./pages/LandingPage";
+import IITBombayPage from "./pages/IITBombayPage";
+import CampusMapPage from "./pages/CampusMapPage";
+import NavigationPage from "./pages/NavigationPage";
+import CampusServicesPage from "./pages/CampusServicesPage";
 
-function App() {
+export default function App() {
   return (
-    /*<div className="min-h-screen p-6 space-y-6">
-      <SearchBar />
-      <FilterPanel />
-      <CampusMap />
-      <LocationDetails />
-    </div>*/
-    <IITBmap />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<EntryPage />} />
+        <Route path="/landing" element={<LandingPage />} />
+        <Route path="/iit-bombay" element={<IITBombayPage />} />
+        <Route path="/campus-map" element={<CampusMapPage />} />
+        <Route path="/navigation" element={<NavigationPage />} />
+        <Route path="/campus-services" element={<CampusServicesPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
