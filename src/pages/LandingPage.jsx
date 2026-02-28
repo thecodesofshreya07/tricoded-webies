@@ -227,14 +227,27 @@ const styles = `
     .block-card:nth-child(3) { grid-column: 1 / -1; max-width: 600px; margin: 0 auto; }
   }
   @media (max-width: 768px) {
-    .header { padding: 0 25px; height: 80px; }
-    .logo-text h1 { font-size: 24px; }
-    .hero-title { font-size: 38px; }
-    .hero-subtitle { font-size: 18px; }
-    .blocks-container { grid-template-columns: 1fr; gap: 25px; padding: 0 25px 50px; }
+    .header { padding: 0 20px; height: 75px; }
+    .logo-text h1 { font-size: 22px; }
+    .logo-icon { width: 45px; height: 45px; }
+    .logo-icon i { font-size: 20px; }
+    .login-button { padding: 10px 20px; font-size: 13px; }
+    .hero-title { font-size: 32px; letter-spacing: -1px; }
+    .hero-subtitle { font-size: 16px; margin-bottom: 25px; }
+    .blocks-container { grid-template-columns: 1fr; gap: 20px; padding: 0 20px 40px; }
+    .block-card { padding: 30px 25px; }
     .block-card:nth-child(3) { grid-column: 1; }
-    .search-section { padding: 0 25px; }
-    .hero-section { padding: 40px 25px 30px; }
+    .search-section { padding: 0 20px; margin-bottom: 30px; }
+    .search-bar { padding: 8px 8px 8px 20px; }
+    .search-btn { padding: 12px 24px; font-size: 14px; }
+    .search-input { font-size: 15px; }
+    .search-input-wrapper i { font-size: 18px; margin-right: 10px; }
+    .hero-section { padding: 25px 20px 20px; }
+    .login-box { padding: 40px 25px; }
+    .login-header h2 { font-size: 26px; }
+    .block-title { font-size: 22px; }
+    .block-icon { width: 70px; height: 70px; margin-bottom: 20px; }
+    .block-icon i { font-size: 32px; }
   }
 `;
 
@@ -245,10 +258,10 @@ export default function LandingPage() {
 
   const filteredResults = searchQuery.length >= 2
     ? campusData.buildings.filter(
-        (b) =>
-          b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          b.description.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      (b) =>
+        b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.description.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : [];
 
   const handleLoginSubmit = (e) => {

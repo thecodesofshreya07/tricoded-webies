@@ -157,6 +157,32 @@ const styles = `
     background: #a67c52;
     box-shadow: 0 0 15px rgba(0,0,0,0.4);
   }
+
+  @media (max-width: 768px) {
+    .entry-h1 {
+      font-size: 2.5rem;
+      letter-spacing: 1px;
+    }
+    .entry-h2 {
+      font-size: 1.2rem;
+      white-space: normal;
+      width: auto !important;
+      animation: none;
+      border-right: none;
+    }
+    .explore-btn {
+      padding: 0.8rem 1.5rem;
+      font-size: 1.1rem;
+    }
+    .entry-modal {
+      width: 90%;
+      padding: 1.5rem;
+    }
+    .entry-modal button {
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+    }
+  }
 `;
 
 export default function EntryPage() {
